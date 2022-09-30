@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+<!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+<!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+<!--[if gt IE 8]>      <html class="no-js"> <!--<![endif]-->
+<html>
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <title></title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jsencrypt/2.3.1/jsencrypt.min.js" async></script>
+        <meta name="description" content="">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="">
+    </head>
+    <body>
+       <form method="POST" id='frm'>
+        {% csrf_token %}
+        <input placeholder="enter username" id='username'></input>
+        <input placeholder="enter password" id='psw'></input>
+        <input type=button onclick='rsa_enc()'>Submit</input>
+       </form>
+       {% comment %} <script src="http://crypto-js.googlecode.com/svn/tags/3.1.2/build/rollups/aes.js"></script> {% endcomment %}
+       <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    </body>
+    <script>
+        function Encrypt() {
+        var data = document.getElementById('psw').value
+        var username = document.getElementById('username').value
+        console.log('data',data)
+        var key = CryptoJS.enc.Utf8.parse('A1A2A3A4A5A6A7A8A9A1A2A3A4A5CAFE');
+        var iv = CryptoJS.enc.Utf8.parse('A1A2A3A4A5A6A7A8');
+        var encryptedData = CryptoJS.AES.encrypt(CryptoJS.enc.Utf8.parse(data), key,
+            {
+                keySize: 256 / 8,
+                iv: iv,
+                mode: CryptoJS.mode.CBC,
+                padding: CryptoJS.pad.Pkcs7
+            });
+        enc_data = encryptedData.toString()
+        console.log(enc_data);
+        
+        $.ajax({
+            
+            type: 'POST',
+            headers: {
+                'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').attr('value')
+            },
+            url: "{% url 'home' %}",
+
+            data: {'username':username, 'password': enc_data},
+
+        })
+        }
+        function rsa_enc(){
+            console.log('in test')
+            var data = document.getElementById('psw').value
+            var username = document.getElementById('username').value
+            console.log('data',data)
+            
+            let publicKey = "MIGfMA0GCSqGSIb3DQEBAQUAA4GNADCBiQKBgQCSuz3Ojj3+JvTx2tvtITUS+1xNeWZjiJEUcglj3j8VI4ZzcK96gyiU0gX81G+BVJXfL5wsOVG4Io/qPWbUXLGeiCtEXzfQr5aqX1tkjnp/7BmKDAtoiRh3H4rfFAJsa8xzWvahvVH8Bo8qdDLxGr/rZTlFGzTAIppNusli1BeBOQIDAQAB";
+            let RSAEncrypt = new JSEncrypt();
+            console.log("sfsdfsf",RSAEncrypt)
+            RSAEncrypt.setPublicKey(publicKey);
+            let encryptedPass = RSAEncrypt.encrypt(data);
+            console.log('enc',encryptedPass)
+            $.ajax({
+            
+                type: 'POST',
+                headers: {
+                    'X-CSRFToken': $('input[name="csrfmiddlewaretoken"]').attr('value')
+                },
+                url: "{% url 'home' %}",
+    
+                data: {'username':username, 'password': encryptedPass},
+    
+            })
+        }
+    </script>
+</html>
+
+
+
+
+
+
+
